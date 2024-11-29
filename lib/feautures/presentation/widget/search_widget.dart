@@ -11,7 +11,7 @@ class SearchWidget extends StatelessWidget {
       children: [
         Expanded(
           child: TextFormField(
-            onTap: () => controller.searchModal(context),
+            onTap: () {},
             readOnly: true,
             decoration: InputDecoration(
               prefixIcon: const Icon(
@@ -46,9 +46,7 @@ class SearchWidget extends StatelessWidget {
           width: 12,
         ),
         InkWell(
-          onTap: () {
-            controller.searchModal(context);
-          },
+          onTap: () {},
           child: Container(
             height: 48,
             width: 48,

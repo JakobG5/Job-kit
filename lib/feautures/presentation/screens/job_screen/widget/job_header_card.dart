@@ -6,24 +6,24 @@ import '../../../../../utils/helper/device_util.dart';
 import '../../../widget/text_card.dart';
 
 class JobHeaderCard extends StatelessWidget {
-  final String? imagePath;
-  final String? componyName;
-  final String? jobTitle;
-  final String? position;
-  final String? duration;
-  final String? level;
-  final double? salary;
-  final String? location;
+  final String imagePath;
+  final String componyName;
+  final String jobTitle;
+  final String position;
+  final String duration;
+  final String level;
+  final String salary;
+  final String location;
   const JobHeaderCard({
     super.key,
-    this.imagePath,
-    this.componyName,
-    this.jobTitle,
-    this.position,
-    this.duration,
-    this.level,
-    this.salary,
-    this.location,
+    required this.imagePath,
+    required this.componyName,
+    required this.jobTitle,
+    required this.position,
+    required this.duration,
+    required this.level,
+    required this.salary,
+    required this.location,
   });
 
   @override
@@ -46,37 +46,59 @@ class JobHeaderCard extends StatelessWidget {
               color: JColors.white,
               shape: BoxShape.circle,
             ),
-            child: const Center(
+            child: Center(
               child: Image(
-                image: AssetImage('asset/facebook.png'),
+                image: NetworkImage(imagePath),
                 height: 40,
                 width: 40,
                 fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) =>
+                    const Icon(Icons.image),
               ),
             ),
           ),
           const SizedBox(height: JSpace.space16),
-          Text(
-            'Software Enginner',
-            style: JTStyle.title.copyWith(color: JColors.white),
+          Expanded(
+            child: Text(
+              jobTitle,
+              style: JTStyle.title.copyWith(color: JColors.white),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
           ),
           const SizedBox(height: JSpace.space16),
-          Text(
-            'Facebook',
-            style: JTStyle.title.copyWith(color: JColors.white, fontSize: 18),
+          Expanded(
+            child: Text(
+              componyName,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              style: JTStyle.title.copyWith(color: JColors.white, fontSize: 18),
+            ),
           ),
           const SizedBox(height: JSpace.space16),
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              TextCard(
-                title: 'It',
+              Expanded(
+                child: TextCard(
+                  title: position,
+                ),
               ),
-              TextCard(
-                title: 'Full Time',
+              const SizedBox(
+                width: 8,
               ),
-              TextCard(
-                title: 'Junior',
+              Expanded(
+                child: TextCard(
+                  title: duration,
+                ),
+              ),
+              const SizedBox(
+                width: 8,
+              ),
+              Expanded(
+                child: TextCard(
+                  title: level,
+                ),
               ),
             ],
           ),
@@ -85,14 +107,14 @@ class JobHeaderCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '\$180,000/year',
+                '$salary ETB',
                 style: JTStyle.subTitle.copyWith(
                   color: JColors.white,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               Text(
-                'California, USA',
+                location,
                 style: JTStyle.subTitle.copyWith(
                   color: JColors.white,
                   fontWeight: FontWeight.bold,

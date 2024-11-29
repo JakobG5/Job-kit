@@ -48,29 +48,53 @@ class PopularCard extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      jobTitile,
-                      style: JTStyle.subTitle,
-                    ),
-                    Text(componyName,
+                // Use Flexible to allow text truncation when needed
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        jobTitile,
+                        style: JTStyle.subTitle,
+                        overflow:
+                            TextOverflow.ellipsis, // Truncate with ellipsis
+                        maxLines: 1, // Allow only 1 line
+                      ),
+                      Text(
+                        componyName,
                         style: JTStyle.subTitle.copyWith(
                           color: JColors.greyMuted,
-                        )),
-                  ],
+                        ),
+                        overflow:
+                            TextOverflow.ellipsis, // Truncate with ellipsis
+                        maxLines: 1, // Allow only 1 line
+                      ),
+                    ],
+                  ),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(salary, style: JTStyle.subTitle),
-                    Text(location,
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        salary,
+                        style: JTStyle.subTitle,
+                        overflow:
+                            TextOverflow.ellipsis, // Truncate with ellipsis
+                        maxLines: 1, // Allow only 1 line
+                      ),
+                      Text(
+                        location,
                         style: JTStyle.subTitle.copyWith(
                           color: JColors.greyMuted,
-                        )),
-                  ],
-                )
+                        ),
+                        overflow:
+                            TextOverflow.ellipsis, // Truncate with ellipsis
+                        maxLines: 1, // Allow only 1 line
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),

@@ -22,6 +22,8 @@ class TextCard extends StatelessWidget {
           title,
           softWrap: true,
           textAlign: TextAlign.center,
+          overflow: TextOverflow.ellipsis, // Truncate with ellipsis
+          maxLines: 1,
         ),
       ),
     );

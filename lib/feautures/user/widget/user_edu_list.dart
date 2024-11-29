@@ -62,10 +62,6 @@ Widget userEducation(String? header, RxList<Education> education) {
                           style: const TextStyle(color: JColors.greyMuted),
                         ),
                         const SizedBox(height: 8),
-                        ElevatedButton(
-                          onPressed: () {},
-                          child: const Text('delete'),
-                        )
                       ],
                     ),
                   );

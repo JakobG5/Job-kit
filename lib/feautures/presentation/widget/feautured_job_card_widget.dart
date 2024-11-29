@@ -56,33 +56,43 @@ class FeauturedCard extends StatelessWidget {
           children: [
             Row(
               children: [
+                // Image with adjusted size
                 Container(
                   height: 46,
                   width: 46,
                   decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      shape: BoxShape.rectangle,
-                      color: JColors.white,
-                      image: DecorationImage(
-                        image: NetworkImage(image),
-                        fit: BoxFit.cover,
-                      )),
+                    borderRadius: BorderRadius.circular(12),
+                    shape: BoxShape.rectangle,
+                    color: JColors.white,
+                    image: DecorationImage(
+                      image: NetworkImage(image),
+                      fit: BoxFit.cover, // Ensures the image is properly scaled
+                    ),
+                  ),
                 ),
                 const SizedBox(width: JSpace.space16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      jobPosition,
-                      style: JTStyle.btnTitle
-                          .copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      componyName,
-                      style: JTStyle.subTitle.copyWith(color: JColors.white),
-                    ),
-                  ],
-                )
+                // Texts with flexible layout and ellipsis overflow handling
+                Flexible(
+                  flex: 3,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        jobPosition,
+                        style: JTStyle.btnTitle
+                            .copyWith(fontWeight: FontWeight.bold),
+                        overflow: TextOverflow.ellipsis, // Truncate if overflow
+                        maxLines: 1, // Only 1 line of text
+                      ),
+                      Text(
+                        componyName,
+                        style: JTStyle.subTitle.copyWith(color: JColors.white),
+                        overflow: TextOverflow.ellipsis, // Truncate if overflow
+                        maxLines: 1, // Only 1 line of text
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
             Row(
@@ -123,9 +133,9 @@ class FeauturedCard extends StatelessWidget {
                     color: JColors.white,
                     fontWeight: FontWeight.bold,
                   ),
-                )
+                ),
               ],
-            )
+            ),
           ],
         ),
       ),

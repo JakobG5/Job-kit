@@ -20,11 +20,6 @@ class CardHeader extends StatelessWidget {
         Text(headerTitile,
             style: JTStyle.btnTitle.copyWith(color: JColors.darkBlue)),
         const Spacer(),
-        TextButton(
-          onPressed: function,
-          child: Text('see all',
-              style: JTStyle.btnTitle.copyWith(color: JColors.borderColor)),
-        ),
       ],
     );
   }

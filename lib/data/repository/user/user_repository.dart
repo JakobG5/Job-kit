@@ -4,6 +4,7 @@ import 'package:job_kit/utils/constants/color.dart';
 import '../../../common/model/job/job_model.dart';
 import '../../../common/model/user/user_model.dart';
 import '../../../feautures/presentation/main_route.dart';
+import '../autentication/firebase_auth_repository.dart';
 
 class UserRepository extends GetxController {
   static UserRepository get instance => Get.find();
@@ -30,7 +31,6 @@ class UserRepository extends GetxController {
 
   Future<void> createJob(JobModel job) async {
     try {
-      Get.snackbar('called to creae job', 'message');
       await _db
           .collection('jobs')
           .add(job.toMap())
@@ -64,6 +64,29 @@ class UserRepository extends GetxController {
     }
   }
 
+  Future<void> applyJob(String jobId) async {
+    try {
+      final userId = AutenticationRepository.instance.firebaseUser.value?.uid;
+      if (userId == null) {
+        Get.snackbar('Error', 'User not logged in.');
+        return;
+      }
+
+      final data = {
+        'id': jobId,
+        'userId': userId,
+        'status': 'Delivered',
+        'timestamp': FieldValue.serverTimestamp(),
+      };
+
+      await _db.collection('applied').add(data);
+
+      Get.snackbar('Success', 'Application submitted successfully!');
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to apply for the job: $e');
+    }
+  }
+
   Future<QuerySnapshot<Map<String, dynamic>>> fetchUser(String userId) async {
     try {
       return await _db.collection('users').where('id', isEqualTo: userId).get();
@@ -76,7 +99,6 @@ class UserRepository extends GetxController {
     try {
       final snapshot = await _db.collection('jobs').get();
 
-      // Convert each document to a JobModel instance
       jobs = snapshot.docs.map((doc) {
         return JobModel.fromMap(doc.data());
       }).toList();
@@ -85,6 +107,19 @@ class UserRepository extends GetxController {
     } catch (e) {
       throw Exception('Failed to fetch all jobs: $e');
     }
+  }
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> fetchAppliedJobs(String? userId) {
+    return _db
+        .collection('applied')
+        .where('userId', isEqualTo: userId)
+        .snapshots();
+  }
+
+  Future<JobModel> fetchJobById(String jobId) async {
+    final snapshot = await _db.collection('jobs').doc(jobId).get();
+    return JobModel.fromMap(
+        snapshot.data()!); // Assuming JobModel has fromMap method
   }
 
   Future<void> updateUser() async {

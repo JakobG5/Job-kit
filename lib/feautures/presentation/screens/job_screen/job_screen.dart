@@ -32,6 +32,15 @@ class _JobScreenState extends State<JobScreen>
   Widget build(BuildContext context) {
     final documentSnapshot = widget.documentSnapshot;
 
+    final jobRequirements =
+        documentSnapshot['jobRequirements'] as Map<String, dynamic>;
+    final header = jobRequirements['header'] as String;
+    final points = jobRequirements['points'] as List<dynamic>;
+
+    final firstPoint = points.isNotEmpty ? points[0]['content'] : 'No Content';
+    final secondPoint = points.length > 1 ? points[1]['content'] : 'No Content';
+    final thirdPoint = points.length > 2 ? points[2]['content'] : 'No Content';
+
     return Scaffold(
       appBar: AppBar(
         iconTheme: const IconThemeData(color: JColors.white),
@@ -57,36 +66,75 @@ class _JobScreenState extends State<JobScreen>
             salary: documentSnapshot['salary'],
           ),
           const SizedBox(height: JSpace.space16),
-          Container(
-            height: 40,
-            width: double.infinity,
-            margin: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: TabBar(
-              isScrollable: true,
-              controller: _tabController,
-              labelColor: JColors.blackBlue,
-              indicatorWeight: 0.1,
-              labelStyle: const TextStyle(fontSize: 14),
-              indicatorSize: TabBarIndicatorSize.label,
-              tabs: const [
-                Tab(text: 'Description'),
-                Tab(text: 'Requirement'),
-                Tab(text: 'About'),
-                Tab(text: 'Reviews'),
-              ],
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Container(
+              height: 40,
+              width: double.infinity,
+              margin: const EdgeInsets.symmetric(horizontal: 0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: TabBar(
+                isScrollable: false,
+                controller: _tabController,
+                labelColor: JColors.blackBlue,
+                indicatorWeight: 0.1,
+                labelStyle: const TextStyle(fontSize: 14),
+                indicatorSize: TabBarIndicatorSize.label,
+                tabs: const [
+                  Tab(
+                    child: Wrap(
+                      children: [
+                        Text(
+                          'Description',
+                          textAlign: TextAlign.center,
+                        )
+                      ],
+                    ),
+                  ),
+                  Tab(
+                    child: Wrap(
+                      children: [
+                        Text(
+                          'Requirements',
+                          textAlign: TextAlign.center,
+                        )
+                      ],
+                    ),
+                  ),
+                  Tab(
+                    child: Wrap(
+                      children: [
+                        Text(
+                          'About',
+                          textAlign: TextAlign.center,
+                        )
+                      ],
+                    ),
+                  ),
+                  Tab(
+                    child: Wrap(
+                      children: [
+                        Text(
+                          'Other',
+                          textAlign: TextAlign.center,
+                        )
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           Expanded(
             child: TabBarView(
               controller: _tabController,
               children: [
-                descriptionWidget('Job Description'),
-                descriptionWidget('Requirements'),
-                descriptionWidget('About the Company'),
-                descriptionWidget('Reviews'),
+                descriptionWidget('$header\n\n$firstPoint'),
+                descriptionWidget(secondPoint),
+                descriptionWidget(documentSnapshot['about']),
+                descriptionWidget(thirdPoint),
               ],
             ),
           ),
@@ -94,11 +142,28 @@ class _JobScreenState extends State<JobScreen>
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             child: CustomBtnOne(
               function: () {
-                Get.to(const ApplyJob());
+                final jobId = documentSnapshot['id'];
+                if (jobId == null || jobId.isEmpty) {
+                  // Handle error case, maybe show a snackbar or alert
+                  Get.snackbar('Error', 'Job ID is missing or invalid');
+                  return;
+                }
+
+                Get.to(ApplyJob(
+                  id: jobId,
+                  componyName:
+                      documentSnapshot['componyNamee'] ?? 'Unknown Company',
+                  jobTitle:
+                      documentSnapshot['positionTitile'] ?? 'Unknown Position',
+                  imgPath: documentSnapshot['imagePath'] ?? '',
+                  location:
+                      '${documentSnapshot['location']['cityName'] ?? 'Unknown City'}, ${documentSnapshot['location']['countryName'] ?? 'Unknown Country'}',
+                  salary: documentSnapshot['salary'] ?? 'Not Specified',
+                ));
               },
-              btnTite: 'Appply',
+              btnTite: 'Apply',
             ),
-          ),
+          )
         ],
       ),
     );

@@ -116,7 +116,6 @@ class JobPostController extends GetxController {
       final uploadTask = ref.putFile(file);
       final snapshot = await uploadTask.whenComplete(() {});
       url = await snapshot.ref.getDownloadURL();
-      Get.snackbar('uploaded', 'img uploaded');
     } catch (e) {
       Get.snackbar('Error', 'error ${e.toString()}');
     }

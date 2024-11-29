@@ -33,6 +33,7 @@ class UserDataController extends GetxController {
 
   //// user mmodel data from text fields
   late NameModel name;
+  late final String url;
   final firstname = TextEditingController();
   final middlename = TextEditingController();
   final lastname = TextEditingController();
@@ -149,6 +150,9 @@ class UserDataController extends GetxController {
       final file = File(path);
       final ref = FirebaseStorage.instance.ref().child(desPath);
       await ref.putFile(file);
+      final uploadTask = ref.putFile(file);
+      final snapshot = await uploadTask.whenComplete(() {});
+      url = await snapshot.ref.getDownloadURL();
     } catch (e) {
       Get.snackbar('Error', 'error ${e.toString()}');
     }
@@ -161,22 +165,7 @@ class UserDataController extends GetxController {
         middle: middlename.text.trim(),
         last: lastname.text.trim(),
       );
-      Get.snackbar(
-        "Success",
-        "Name added successfully",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
-    } catch (e) {
-      Get.snackbar(
-        "Error",
-        "Failed to add name: $e",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-    }
+    } catch (e) {}
   }
 
   void addLocation() {
@@ -185,22 +174,7 @@ class UserDataController extends GetxController {
         cityName: city.value,
         countryName: country.value,
       );
-      Get.snackbar(
-        "Success",
-        "Location added successfully",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
-    } catch (e) {
-      Get.snackbar(
-        "Error",
-        "Failed to add location: $e",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-    }
+    } catch (e) {}
   }
 
   void saveUserModel() {
@@ -209,7 +183,7 @@ class UserDataController extends GetxController {
         newUser = UserModel(
           id: controllerAuth.firebaseUser.value!.uid,
           name: name,
-          imagePath: fileController.selectedImage.toString(),
+          imagePath: url,
           location: location,
           dateOfBirth: dob.text.trim(),
           email: AutenticationRepository.instance.firebaseUser.value!.email,
@@ -222,71 +196,24 @@ class UserDataController extends GetxController {
             StringList(id: '2', content: 'Amharic'),
           ],
         );
-        Get.snackbar(
-          "Success",
-          "User model saved successfully",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
-      } else {
-        Get.snackbar(
-          "Error",
-          "Validation failed for user model",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-      }
-    } catch (e) {
-      Get.snackbar(
-        "Error",
-        "Failed to save user model: $e",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-    }
+      } else {}
+    } catch (e) {}
   }
 
   Future<void> saveData() async {
     try {
-      Get.snackbar(
-        "Info",
-        "Save data function called",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.blue,
-        colorText: Colors.white,
-      );
-
-      // Call helper methods
+      uploadImage();
       addLocation();
       addName();
       saveUserModel();
-
-      // Attempt to save to repository
       await dataController.createUser(newUser);
-
-      Get.snackbar(
-        "Success",
-        "User data saved successfully",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
-    } catch (e) {
-      Get.snackbar(
-        "Error",
-        "Failed to save user data: $e",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-    }
+    } catch (e) {}
   }
 
   void next() {
-    if (keyData1.currentState!.validate() &&
+    if (fileController.selectedImage.value == null) {
+      Get.snackbar('Error', 'Please upload a profile image before proceeding.');
+    } else if (keyData1.currentState!.validate() &&
         country.value.isNotEmpty &&
         city.value.isNotEmpty &&
         state.value.isNotEmpty) {

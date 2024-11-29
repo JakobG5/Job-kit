@@ -57,7 +57,13 @@ class UserProfileScreen extends StatelessWidget {
 
               return Column(
                 children: [
-                  const HeaderCard(),
+                  HeaderCard(
+                    imagePath: userSnapshot['imagePath'],
+                    location:
+                        '${userSnapshot['location']['cityName']} ${userSnapshot['location']['countryName']}',
+                    name:
+                        '${userSnapshot['name']['first']} ${userSnapshot['name']['middle']} ${userSnapshot['name']['last']}',
+                  ),
                   const SizedBox(height: JSpace.space8),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),

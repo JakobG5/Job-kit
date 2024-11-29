@@ -5,7 +5,15 @@ import '../../../utils/constants/space.dart';
 import '../../../utils/helper/device_util.dart';
 
 class HeaderCard extends StatelessWidget {
-  const HeaderCard({super.key});
+  final String name;
+  final String imagePath;
+  final String location;
+  const HeaderCard({
+    super.key,
+    required this.name,
+    required this.imagePath,
+    required this.location,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -32,23 +40,25 @@ class HeaderCard extends StatelessWidget {
                   Container(
                     height: 60,
                     width: 60,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       image: DecorationImage(
-                        image: AssetImage('asset/jakob.png'),
+                        image: NetworkImage(imagePath),
+                        onError: (exception, stackTrace) =>
+                            const Icon(Icons.person),
                         fit: BoxFit.cover,
                       ),
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Yakob Girma',
-                    style: TextStyle(fontSize: 16, color: JColors.white),
+                  Text(
+                    name,
+                    style: const TextStyle(fontSize: 16, color: JColors.white),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Addis Abeba,Ethiopia',
-                    style: TextStyle(fontSize: 16, color: JColors.white),
+                  Text(
+                    location,
+                    style: const TextStyle(fontSize: 16, color: JColors.white),
                   ),
                 ],
               ),

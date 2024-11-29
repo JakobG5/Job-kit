@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:job_kit/data/repository/autentication/firebase_auth_repository.dart';
@@ -16,6 +17,7 @@ import '../../user/screens/user_profile_screen.dart';
 
 Widget drawer(BuildContext context) {
   final fileController = Get.put(FilePickerController());
+
   return Drawer(
     backgroundColor: JColors.background,
     child: SizedBox(
@@ -28,37 +30,64 @@ Widget drawer(BuildContext context) {
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(
-                  height: JSpace.space16,
-                ),
+                const SizedBox(height: JSpace.space16),
                 SizedBox(
                   height: 104,
                   width: 104,
                   child: Stack(
                     children: [
-                      Obx(
-                        () => Container(
-                          height: 104,
-                          width: 104,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                          ),
-                          child: fileController.selectedImage.value == null
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(54),
-                                  child: const Icon(Icons.person, size: 104),
+                      Obx(() => StreamBuilder<QuerySnapshot>(
+                            stream: FirebaseFirestore.instance
+                                .collection('users')
+                                .where(
+                                  'id',
+                                  isEqualTo: AutenticationRepository
+                                      .instance.firebaseUser.value!.uid,
                                 )
-                              : ClipRRect(
-                                  borderRadius: BorderRadius.circular(104),
-                                  child: Image.file(
-                                    fileController.selectedImage.value!,
-                                    fit: BoxFit.cover,
-                                    height: 104,
-                                    width: 104,
+                                .snapshots(),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const CircularProgressIndicator(); //
+                              }
+
+                              if (snapshot.hasError) {
+                                return const Icon(
+                                  Icons.error,
+                                  size: 104,
+                                  color: Colors.red,
+                                );
+                              }
+
+                              if (!snapshot.hasData ||
+                                  snapshot.data!.docs.isEmpty) {
+                                return ClipRRect(
+                                  borderRadius: BorderRadius.circular(54),
+                                  child: const Icon(
+                                    Icons.person,
+                                    size: 104,
                                   ),
-                                ),
-                        ),
-                      ),
+                                );
+                              }
+
+                              final DocumentSnapshot userSnapshot =
+                                  snapshot.data!.docs[0];
+                              final imagePath =
+                                  userSnapshot['imagePath'] as String?;
+
+                              return ClipRRect(
+                                borderRadius: BorderRadius.circular(104),
+                                child: imagePath == null || imagePath.isEmpty
+                                    ? const Icon(Icons.person, size: 104)
+                                    : Image.network(
+                                        imagePath,
+                                        fit: BoxFit.cover,
+                                        height: 104,
+                                        width: 104,
+                                      ),
+                              );
+                            },
+                          )),
                       Positioned(
                         bottom: 0,
                         right: 0,
@@ -137,7 +166,6 @@ Widget drawer(BuildContext context) {
             },
           ),
           const SizedBox(height: 4),
-          const SizedBox(height: 4),
           ListTile(
             leading: const Icon(
               Icons.settings_applications_rounded,
@@ -187,9 +215,7 @@ Widget drawer(BuildContext context) {
               btnTite: 'Go Premium',
             ),
           ),
-          const SizedBox(
-            height: JSpace.space16,
-          ),
+          const SizedBox(height: JSpace.space16),
         ],
       ),
     ),

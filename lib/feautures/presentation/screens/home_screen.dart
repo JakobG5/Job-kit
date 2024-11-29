@@ -5,6 +5,7 @@ import 'package:job_kit/feautures/presentation/controller/home_screen_controller
 import 'package:job_kit/utils/constants/color.dart';
 import '../../../common/style/text_style.dart';
 import '../../../data/controller/file_picker_controller.dart';
+import '../../../data/repository/autentication/firebase_auth_repository.dart';
 import '../../../utils/constants/space.dart';
 import '../widget/card_header_widget.dart';
 import '../widget/drawer_widget.dart';
@@ -17,55 +18,79 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(HomeScreenController(), permanent: true);
-    final fileController = Get.put(FilePickerController());
+    final controller = Get.put(HomeScreenController());
     return Scaffold(
       backgroundColor: JColors.background,
       appBar: AppBar(
         title: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text('Welcome to Jobseek!', style: JTStyle.appBarT),
             Text(
               'Discover Jobs',
-              style: JTStyle.header.copyWith(
-                color: JColors.blackBlue,
-              ),
+              style: JTStyle.header.copyWith(color: JColors.blackBlue),
             ),
           ],
         ),
         actions: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            padding: const EdgeInsets.all(8),
             child: Stack(
               children: [
                 InkWell(
-                  onTap: fileController.pickImage,
-                  child: Obx(
-                    () => Container(
-                      height: 54,
-                      width: 54,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                      ),
-                      // ignore: unnecessary_null_comparison
-                      child: fileController.selectedImage.value == null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(54),
-                              child: const Icon(Icons.person, size: 54),
+                  onTap: () => Get.find<FilePickerController>().pickImage(),
+                  child: Obx(() => StreamBuilder<QuerySnapshot>(
+                        stream: FirebaseFirestore.instance
+                            .collection('users')
+                            .where(
+                              'id',
+                              isEqualTo: AutenticationRepository
+                                  .instance.firebaseUser.value!.uid,
                             )
-                          : ClipRRect(
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const CircularProgressIndicator(); //
+                          }
+
+                          if (snapshot.hasError) {
+                            return const Icon(
+                              Icons.error,
+                              size: 104,
+                              color: Colors.red,
+                            );
+                          }
+
+                          if (!snapshot.hasData ||
+                              snapshot.data!.docs.isEmpty) {
+                            return ClipRRect(
                               borderRadius: BorderRadius.circular(54),
-                              child: Image.file(
-                                fileController.selectedImage.value!,
-                                fit: BoxFit.cover,
-                                height: 54,
-                                width: 54,
+                              child: const Icon(
+                                Icons.person,
+                                size: 40,
                               ),
-                            ),
-                    ),
-                  ),
+                            );
+                          }
+
+                          final DocumentSnapshot userSnapshot =
+                              snapshot.data!.docs[0];
+                          final imagePath =
+                              userSnapshot['imagePath'] as String?;
+
+                          return ClipRRect(
+                            borderRadius: BorderRadius.circular(104),
+                            child: imagePath == null || imagePath.isEmpty
+                                ? const Icon(Icons.person, size: 104)
+                                : Image.network(
+                                    imagePath,
+                                    fit: BoxFit.cover,
+                                    height: 40,
+                                    width: 40,
+                                  ),
+                          );
+                        },
+                      )),
                 ),
                 Positioned(
                   top: 4,
@@ -77,14 +102,10 @@ class HomeScreen extends StatelessWidget {
                       color: JColors.white,
                       shape: BoxShape.circle,
                     ),
-                    child: Center(
-                      child: Container(
-                        height: 8,
-                        width: 8,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.red,
-                        ),
+                    child: const Center(
+                      child: CircleAvatar(
+                        radius: 4,
+                        backgroundColor: Colors.red,
                       ),
                     ),
                   ),
@@ -100,81 +121,92 @@ class HomeScreen extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: ListView(
             children: [
-              const SizedBox(
-                height: JSpace.space32,
-              ),
-              SearchWidget(
-                controller: controller,
-              ),
+              const SizedBox(height: JSpace.space32),
+              SearchWidget(controller: controller),
               const SizedBox(height: JSpace.space21),
               CardHeader(
-                headerTitile: 'Feautured Jobs',
+                headerTitile: 'Featured Jobs',
                 function: controller.goToFeautured,
               ),
               const SizedBox(height: JSpace.space21),
               SizedBox(
                 height: 190,
-                child: StreamBuilder(
-                    stream: FirebaseFirestore.instance
-                        .collection('jobs')
-                        .snapshots(),
-                    builder: (context, snapshot) {
-                      return ListView.builder(
-                        itemCount: snapshot.data!.size,
-                        scrollDirection: Axis.horizontal,
-                        shrinkWrap: true,
-                        itemBuilder: (context, index) {
-                          final DocumentSnapshot jobDocument =
-                              snapshot.data!.docs[index];
-                          return FeauturedCard(
-                            documentSnapshot: jobDocument,
-                            componyName: jobDocument['componyNamee'],
-                            exprianceLevel: jobDocument['employeeType'],
-                            image: jobDocument['imagePath'],
-                            jobCategory: jobDocument['field'],
-                            jobDuration: jobDocument['duration'],
-                            jobPosition: jobDocument['positionTitile'],
-                            location:
-                                '${jobDocument['location']['cityName']}, ${jobDocument['location']['countryName']}',
-                            salary: jobDocument['salary'],
-                          );
-                        },
-                      );
-                    }),
+                child: StreamBuilder<QuerySnapshot>(
+                  stream:
+                      FirebaseFirestore.instance.collection('jobs').snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (snapshot.hasError) {
+                      return const Center(child: Text('Error loading jobs.'));
+                    }
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      return const Center(
+                          child: Text('No featured jobs found.'));
+                    }
+                    return ListView.builder(
+                      itemCount: snapshot.data!.docs.length,
+                      scrollDirection: Axis.horizontal,
+                      itemBuilder: (context, index) {
+                        final job = snapshot.data!.docs[index];
+                        return FeauturedCard(
+                          documentSnapshot: job,
+                          componyName: job['componyNamee'] ?? 'Unknown Company',
+                          exprianceLevel: job['employeeType'] ?? 'N/A',
+                          image: job['imagePath'] ?? '',
+                          jobCategory: job['field'] ?? 'N/A',
+                          jobDuration: job['duration'] ?? 'N/A',
+                          jobPosition: job['positionTitile'] ?? 'N/A',
+                          location:
+                              '${job['location']?['cityName'] ?? 'Unknown City'}, ${job['location']?['countryName'] ?? 'Unknown Country'}',
+                          salary: job['salary'] ?? 'N/A',
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
-              const SizedBox(
-                height: JSpace.space32,
-              ),
+              const SizedBox(height: JSpace.space32),
               CardHeader(
                 headerTitile: 'Popular Jobs',
                 function: controller.goToPopular,
               ),
               const SizedBox(height: JSpace.space21),
-              StreamBuilder(
-                  stream:
-                      FirebaseFirestore.instance.collection('jobs').snapshots(),
-                  builder: (context, snapshot) {
-                    return ListView.builder(
-                      itemCount: snapshot.data!.size,
-                      scrollDirection: Axis.vertical,
-                      shrinkWrap: true,
-                      itemBuilder: (context, index) {
-                        final DocumentSnapshot jobDocumentPop =
-                            snapshot.data!.docs[index];
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 16),
-                          child: PopularCard(
-                            componyName: jobDocumentPop['componyNamee'],
-                            imagePath: jobDocumentPop['imagePath'],
-                            jobTitile: jobDocumentPop['positionTitile'],
-                            location:
-                                '${jobDocumentPop['location']?['cityName'] ?? 'Unknown City'}, ${jobDocumentPop['location']?['countryName'] ?? 'Unknown Country'}',
-                            salary: jobDocumentPop['salary'],
-                          ),
-                        );
-                      },
-                    );
-                  }),
+              StreamBuilder<QuerySnapshot>(
+                stream:
+                    FirebaseFirestore.instance.collection('jobs').snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return const Center(child: Text('Error loading jobs.'));
+                  }
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const Center(child: Text('No popular jobs found.'));
+                  }
+                  return ListView.builder(
+                    itemCount: snapshot.data!.docs.length,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemBuilder: (context, index) {
+                      final job = snapshot.data!.docs[index];
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        child: PopularCard(
+                          componyName: job['componyNamee'] ?? 'Unknown Company',
+                          imagePath: job['imagePath'] ?? '',
+                          jobTitile: job['positionTitile'] ?? 'N/A',
+                          location:
+                              '${job['location']?['cityName'] ?? 'Unknown City'}, ${job['location']?['countryName'] ?? 'Unknown Country'}',
+                          salary: job['salary'] ?? 'N/A',
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
             ],
           ),
         ),

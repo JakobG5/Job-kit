@@ -6,14 +6,30 @@ import '../../../../utils/constants/color.dart';
 import '../../../../utils/constants/space.dart';
 import '../../../../utils/helper/device_util.dart';
 import '../../../user/widget/file_list.dart';
+import '../../controller/job_screen_contoller.dart';
 import '../../widget/popular_card.dart';
 
 class ApplyJob extends StatelessWidget {
-  const ApplyJob({super.key});
+  final String componyName;
+  final String imgPath;
+  final String jobTitle;
+  final String location;
+  final String salary;
+  final String id;
+  const ApplyJob({
+    super.key,
+    required this.id,
+    required this.componyName,
+    required this.imgPath,
+    required this.jobTitle,
+    required this.location,
+    required this.salary,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(FilePickerController());
+    final filecontroller = Get.put(FilePickerController());
+    final controller = Get.put(JobController());
     return Scaffold(
       appBar: AppBar(
         title: const Text('Apply'),
@@ -30,7 +46,13 @@ class ApplyJob extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: JSpace.space16),
-              // const PopularCard(),
+              PopularCard(
+                componyName: componyName,
+                imagePath: imgPath,
+                jobTitile: jobTitle,
+                location: location,
+                salary: salary,
+              ),
               const SizedBox(height: JSpace.space32),
               const Text(
                 'Select Cv',
@@ -41,24 +63,27 @@ class ApplyJob extends StatelessWidget {
               ),
               const SizedBox(height: JSpace.space32),
               Obx(() {
-                return controller.resumeFiles.isEmpty
+                return filecontroller.resumeFiles.isEmpty
                     ? const Center(child: Text('No resume uploaded.'))
                     : ListView.builder(
                         shrinkWrap: true,
-                        itemCount: controller.resumeFiles.length,
+                        itemCount: filecontroller.resumeFiles.length,
                         itemBuilder: (context, index) {
-                          final file = controller.resumeFiles[index];
+                          final file = filecontroller.resumeFiles[index];
                           return FileListTile(
                             index: index,
                             file: file,
-                            onDelete: () => controller.deleteFile(
-                                controller.resumeFiles, file),
+                            onDelete: () => filecontroller.deleteFile(
+                                filecontroller.resumeFiles, file),
                           );
                         },
                       );
               }),
               const Spacer(),
-              CustomBtnOne(function: () {}, btnTite: 'Apply'),
+              CustomBtnOne(
+                function: () => controller.applyForJob(id),
+                btnTite: 'Apply',
+              ),
               const SizedBox(height: JSpace.space16),
             ],
           ),
