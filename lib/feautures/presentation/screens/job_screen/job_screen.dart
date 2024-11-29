@@ -6,7 +6,6 @@ import '../../../../utils/constants/color.dart';
 import '../../../../utils/constants/space.dart';
 import 'apply_job_screen.dart';
 import 'widget/job_header_card.dart';
-import 'widget/tab_widget.dart';
 
 class JobScreen extends StatefulWidget {
   final DocumentSnapshot documentSnapshot;
@@ -24,13 +23,15 @@ class _JobScreenState extends State<JobScreen>
   late final TabController _tabController;
 
   @override
-  initState() {
+  void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
   Widget build(BuildContext context) {
+    final documentSnapshot = widget.documentSnapshot;
+
     return Scaffold(
       appBar: AppBar(
         iconTheme: const IconThemeData(color: JColors.white),
@@ -39,7 +40,7 @@ class _JobScreenState extends State<JobScreen>
           IconButton(
             onPressed: () {},
             icon: const Icon(Icons.bookmark_border),
-          )
+          ),
         ],
       ),
       body: Column(
@@ -48,7 +49,7 @@ class _JobScreenState extends State<JobScreen>
             componyName: documentSnapshot['componyNamee'],
             duration: documentSnapshot['duration'],
             imagePath: documentSnapshot['imagePath'],
-            jobTitle: jobDocument['positionTitile'],
+            jobTitle: documentSnapshot['positionTitile'],
             level: documentSnapshot['employeeType'],
             location:
                 '${documentSnapshot['location']['cityName']}, ${documentSnapshot['location']['countryName']}',
@@ -61,9 +62,7 @@ class _JobScreenState extends State<JobScreen>
             width: double.infinity,
             margin: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(
-                12,
-              ),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: TabBar(
               isScrollable: true,
@@ -72,7 +71,6 @@ class _JobScreenState extends State<JobScreen>
               indicatorWeight: 0.1,
               labelStyle: const TextStyle(fontSize: 14),
               indicatorSize: TabBarIndicatorSize.label,
-              tabAlignment: TabAlignment.start,
               tabs: const [
                 Tab(text: 'Description'),
                 Tab(text: 'Requirement'),
@@ -85,22 +83,33 @@ class _JobScreenState extends State<JobScreen>
             child: TabBarView(
               controller: _tabController,
               children: [
-                descriptionWidget(),
-                descriptionWidget(),
-                descriptionWidget(),
-                descriptionWidget(),
+                descriptionWidget('Job Description'),
+                descriptionWidget('Requirements'),
+                descriptionWidget('About the Company'),
+                descriptionWidget('Reviews'),
               ],
             ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             child: CustomBtnOne(
-                function: () {
-                  Get.to(const ApplyJob());
-                },
-                btnTite: 'Appply'),
+              function: () {
+                Get.to(const ApplyJob());
+              },
+              btnTite: 'Appply',
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget descriptionWidget(String content) {
+    return Padding(
+      padding: const EdgeInsets.all(12.0),
+      child: Text(
+        content,
+        style: const TextStyle(fontSize: 16),
       ),
     );
   }
